@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>Scrim Results Calculator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #1e1e1e;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    .input-area {
+      margin-bottom: 20px;
+    }
+    .input-area input {
+      padding: 5px;
+      margin: 5px;
+      border-radius: 5px;
+      border: none;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #007bff;
+      color: #fff;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    #resultsTable {
+      margin: 20px auto;
+      border-collapse: collapse;
+      width: 80%;
+      background: #2c2c2c;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    #resultsTable th, #resultsTable td {
+      padding: 12px;
+      text-align: center;
+    }
+    #resultsTable th {
+      background: #111;
+    }
+    .rank {
+      font-weight: bold;
+      color: #FFD700;
+    }
+    .team {
+      font-weight: bold;
+    }
+    .points {
+      font-weight: bold;
+      color: #0f0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Scrims Results Calculator </h1>
+
+  <div class="input-area">
+    <input type="text" id="teamName" placeholder="Team Name">
+    <input type="number" id="kills" placeholder="Kills">
+    <input type="number" id="placement" placeholder="Placement (1,2,3...)">
+    <button onclick="addTeam()">Add Team</button>
+  </div>
+
+  <div id="resultsArea">
+    <table id="resultsTable">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Team</th>
+          <th>Kills</th>
+          <th>Placement</th>
+          <th>Total Points</th>
+        </tr>
+      </thead>
+      <tbody id="resultsBody">
+      </tbody>
+    </table>
+  </div>
+
+  <button onclick="downloadImage()">“¸ Generate Results Image</button>
+
+  <script>
+    let teams = [];
+    const colors = ["#ff4c4c","#4c9aff","#4cff4c","#ffb84c","#b84cff","#4cfff2","#ff4ce6","#ffd24c"];
+
+    function calculatePoints(kills, placement) {
+      let placementPoints = 0;
+      if (placement === 1) placementPoints = 10;
+      else if (placement === 2) placementPoints = 6;
+      else if (placement === 3) placementPoints = 5;
+      else if (placement <= 5) placementPoints = 4;
+      else if (placement <= 10) placementPoints = 2;
+      else placementPoints = 0;
+      return kills + placementPoints;
+    }
+
+    function addTeam() {
+      const name = document.getElementById(" ").value;
+      const kills = parseInt(document.getElementById("").value) || 0;
+      const placement = parseInt(document.getElementById("WWDC").value) || 0;
+
+      if (!name) return alert("Enter team name!");
+
+      const total = calculatePoints(kills, placement);
+      teams.push({ name, kills, placement, total });
+
+      document.getElementById("Tag").value = "";
+      document.getElementById("kills").value = "";
+      document.getElementById("WWDC").value = "";
+
+      renderTable();
+    }
+
+    function downloadImage() {
+      html2canvas(document.querySelector("#resultsArea")).then(canvas => {
+        const link = document.createElement("a");
+        link.download = "scrims.png";
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    }
+  </script>
+</body>
+</html>
