@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>Scrim Results Calculator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #1e1e1e;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 { margin-bottom: 20px; }
+    .input-area { margin-bottom: 20px; }
+    .input-area input {
+      padding: 5px;
+      margin: 5px;
+      border-radius: 5px;
+      border: none;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #007bff;
+      color: #fff;
+      cursor: pointer;
+    }
+    button:hover { background: #0056b3; }
+
+    #resultsTable {
+      margin: 20px auto;
+      border-collapse: collapse;
+      width: 80%;
+    }
+    #resultsTable th, #resultsTable td {
+      padding: 12px;
+      text-align: center;
+    }
+    .rank { font-weight: bold; }
+    .team { font-weight: bold; }
+    .points { font-weight: bold; }
+
+    /* ستايل 1 */
+    .style1 {
+      background: #2c2c2c;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+    .style1 #resultsTable th { background: #111; color: #fff; }
+
+    /* ستايل 2 */
+    .style2 {
+      background: #fff;
+      color: #000;
+      border: 2px solid #ddd;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    .style2 #resultsTable th { background: #f1f1f1; color: #000; }
+
+    /* ستايل 3 */
+    .style3 {
+      background: transparent;
+      color: #fff;
+      padding: 10px;
+      border: none;
+    }
+    .style3 #resultsTable th { background: #333; color: #fff; }
+
+    /* ستايل 4: احترافي */
+    .style4 {
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+    }
+    .style4 #resultsTable th {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(6px);
+      color: #FFD700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    /* تلوين خاص للتوب 3 */
+    .style4 .rank-1 { color: #FFD700; font-size: 1.2em; } /* ذهب */
+    .style4 .rank-2 { color: #C0C0C0; font-size: 1.1em; } /* فضة */
+    .style4 .rank-3 { color: #CD7F32; font-size: 1.05em; } /* برونز */
+    .style4 .points { color: #00ffcc; }
+    
+    /* بانر */
+    .results-banner {
+      max-width: 300px;
+      margin: 0 auto 20px;
+      display: block;
+    }
+
+    /* لوجو الحقوق */
+    .logo-footer {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      width: 120px;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <h1>Scrims Results Calculator</h1>
+
+  <div class="input-area">
+    <input type="text" id="teamName" placeholder="Team Name">
+    <input type="number" id="kills" placeholder="Kills">
+    <input type="number" id="placement" placeholder="Placement (1,2,3...)">
+    <button onclick="addTeam()">Add Team</button>
+  </div>
+
+  <!-- اختيار الستايل -->
+  <div>
+    <label for="styleSelect">اختار شكل النتائج:</label>
+    <select id="styleSelect" onchange="changeStyle()">
+      <option value="style1">ستايل 1 (داكن مع بانر)</option>
+      <option value="style2">ستايل 2 (فاتح)</option>
+      <option value="style3">ستايل 3 (بسيط)</option>
+      <option value="style4">ستايل 4 (احترافي)</option>
+    </select>
+  </div>
+
+  <div id="resultsArea" class="style1">
+    <img class="results-banner" src="images/results.png" alt="Results Banner" id="banner">
+    
+    <table id="resultsTable">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Team</th>
+          <th>Kills</th>
+          <th>Placement</th>
+          <th>Total Points</th>
+        </tr>
+      </thead>
+      <tbody id="resultsBody"></tbody>
+    </table>
+  </div>
+
+  <button onclick="downloadImage()">Generate Results Image</button>
+
+  <!-- لوجو الحقوق -->
+  <img class="logo-footer" src="images/logo2.png" alt="Logo">
+
+  <script>
+    let teams = [];
+
+    function calculatePoints(kills, placement) {
+      let placementPoints = 0;
+      if (placement === 1) placementPoints = 10;
+      else if (placement === 2) placementPoints = 6;
+      else if (placement === 3) placementPoints = 5;
+      else if (placement <= 5) placementPoints = 4;
+      else if (placement <= 10) placementPoints = 2;
+      return kills + placementPoints;
+    }
+
+    function addTeam() {
+      const name = document.getElementById("teamName").value;
+      const kills = parseInt(document.getElementById("kills").value) || 0;
+      const placement = parseInt(document.getElementById("placement").value) || 0;
+
+      if (!name) return alert("Enter team name!");
+
+      const total = calculatePoints(kills, placement);
+      teams.push({ name, kills, placement, total });
+
+      document.getElementById("teamName").value = "";
+      document.getElementById("kills").value = "";
+      document.getElementById("placement").value = "";
+
+      renderTable();
+    }
+
+    function renderTable() {
+      teams.sort((a, b) => b.total - a.total);
+      const tbody = document.getElementById("resultsBody");
+      tbody.innerHTML = "";
+
+      teams.forEach((team, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td class="rank rank-${index+1}">${index + 1}</td>
+          <td class="team">${team.name}</td>
+          <td>${team.kills}</td>
+          <td>${team.placement}</td>
+          <td class="points">${team.total}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function changeStyle() {
+      const selected = document.getElementById("styleSelect").value;
+      const results = document.getElementById("resultsArea");
+      results.className = selected;
+
+      const banner = document.getElementById("banner");
+      if (selected === "style1") banner.style.display = "block";
+      else banner.style.display = "none";
+    }
+
+    function downloadImage() {
+      html2canvas(document.querySelector("#resultsArea")).then(canvas => {
+        const link = document.createElement("a");
+        link.download = "scrims.png";
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    }
+  </script>
+</body>
+</html>
